@@ -17,38 +17,82 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Define a simple Mongoose schema/model (example: students)
-const studentSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  major: String,
+// -------------------
+// Define Schemas/Models
+// -------------------
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
 });
 
-const Student = mongoose.model("Student", studentSchema);
+const taskSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  title: { type: String, required: true },
+  description: { type: String },
+  completed: { type: Boolean, default: false },
+});
 
-app.get("/api/students", async (req, res) => {
+const User = mongoose.model("User", userSchema);
+const Task = mongoose.model("Task", taskSchema);
+
+// -------------------
+// Routes
+// -------------------
+
+// ---- User Routes ----
+
+// Get all users
+app.get("/api/users", async (req, res) => {
   try {
-    const students = await Student.find();
-    res.json(students); // this is what Axios will receive
+    const users = await User.find();
+    res.json(users);
   } catch (err) {
-    console.error("Error fetching students:", err);
+    console.error("Error fetching users:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Example route: add a student
-app.post("/api/students", async (req, res) => {
+// Add a new user
+app.post("/api/users", async (req, res) => {
   try {
-    const { name, email, major } = req.body;
-    const student = new Student({ name, email, major });
-    const saved = await student.save();
+    const { name, email } = req.body;
+    const user = new User({ name, email });
+    const saved = await user.save();
     res.status(201).json(saved);
   } catch (err) {
-    console.error("Error creating student:", err);
-    res.status(500).json({ message: "Server error" }); 
+    console.error("Error creating user:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-//start server testing
+// ---- Task Routes ----
+
+// Get all tasks for a specific user
+app.get("/api/tasks/:userId", async (req, res) => {
+  try {
+    const tasks = await Task.find({ user: req.params.userId });
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Add a new task
+app.post("/api/tasks", async (req, res) => {
+  try {
+    const { user, title, description, completed } = req.body;
+    const task = new Task({ user, title, description, completed });
+    const saved = await task.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error("Error creating task:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// -------------------
+// Start Server
+// -------------------
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
