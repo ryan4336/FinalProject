@@ -45,10 +45,10 @@ app.post("/api/students", async (req, res) => {
     res.status(201).json(saved);
   } catch (err) {
     console.error("Error creating student:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" }); 
   }
 });
 
-//start server
+//start server test
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
