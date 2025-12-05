@@ -30,6 +30,7 @@ const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
   completed: { type: Boolean, default: false },
+  priority: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("User", userSchema);
@@ -81,8 +82,8 @@ app.get("/api/tasks/:userId", async (req, res) => {
 // Add a new task
 app.post("/api/tasks", async (req, res) => {
   try {
-    const { user, title, description, completed } = req.body;
-    const task = new Task({ user, title, description, completed });
+    const { user, title, description, completed, priority } = req.body;
+    const task = new Task({ user, title, description, completed, priority });
     const saved = await task.save();
     res.status(201).json(saved);
   } catch (err) {
