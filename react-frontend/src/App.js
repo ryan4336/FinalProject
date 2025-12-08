@@ -5,7 +5,7 @@ import HomePage from "./pages/HomePage";
 import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
 import TaskListPage from "./pages/TaskListPage";
-import api from "./api";
+import api from "./api/taskAPI";
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
