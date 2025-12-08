@@ -13,6 +13,14 @@ export default function ItemForm({ form, setForm, editingId, onSubmit, onCancel 
     <form onSubmit={onSubmit} style={{ marginBottom: "20px" }}>
       <h2>{editingId ? "Edit Student" : "Add Student"}</h2>
 
+    <input
+        name="Id"
+        value={form.name}
+        onChange={handleChange}
+        placeholder="Id"
+      />
+      <br /><br />
+
       <input
         name="name"
         value={form.name}
