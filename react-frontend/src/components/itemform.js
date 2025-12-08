@@ -2,6 +2,7 @@ import React from "react";
 
 export default function ItemForm({ form, setForm, editingId, onSubmit, onCancel }) {
   
+  // update form values
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -11,13 +12,13 @@ export default function ItemForm({ form, setForm, editingId, onSubmit, onCancel 
 
   return (
     <form onSubmit={onSubmit} style={{ marginBottom: "20px" }}>
-      <h2>{editingId ? "Edit Student" : "Add Student"}</h2>
+      <h2>{editingId ? "Edit User" : "Add User"}</h2>
 
-    <input
-        name="Id"
-        value={form.name}
+      <input
+        name="id"
+        value={form.id}
         onChange={handleChange}
-        placeholder="Id"
+        placeholder="User ID"
       />
       <br /><br />
 
@@ -25,7 +26,7 @@ export default function ItemForm({ form, setForm, editingId, onSubmit, onCancel 
         name="name"
         value={form.name}
         onChange={handleChange}
-        placeholder="Student Name"
+        placeholder="Name"
       />
       <br /><br />
 
@@ -33,24 +34,20 @@ export default function ItemForm({ form, setForm, editingId, onSubmit, onCancel 
         name="email"
         value={form.email}
         onChange={handleChange}
-        placeholder="Student Email"
-      />
-      <br /><br />
-
-      <input
-        name="major"
-        value={form.major}
-        onChange={handleChange}
-        placeholder="Student Major"
+        placeholder="Email"
       />
       <br /><br />
 
       <button type="submit">
-        {editingId ? "Save Changes" : "Add Student"}
+        {editingId ? "Save Changes" : "Add User"}
       </button>
 
       {editingId && (
-        <button type="button" onClick={onCancel} style={{ marginLeft: "10px" }}>
+        <button 
+          type="button" 
+          onClick={onCancel} 
+          style={{ marginLeft: "10px" }}
+        >
           Cancel
         </button>
       )}

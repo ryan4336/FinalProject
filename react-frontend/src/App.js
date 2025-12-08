@@ -2,133 +2,109 @@ import './App.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+import ItemForm from "./components/itemform";
+
 function App() {
 
-  const [students, setStudents] = useState([]);
+  const [users, setUsers] = useState([]);
   const [form, setForm] = useState({
+    id: '',
     name: '',
-    email: '',
-    major: ''
+    email: ''
   });
 
   const [editingId, setEditingId] = useState(null);
 
-  // FETCH ALL STUDENTS (READ)
+  // READ - fetch users
   useEffect(() => {
-    axios.get('https://localhost:5001/api/students')
-      .then(res => setStudents(res.data))
-      .catch(err => console.error('Error fetching students', err));
-  }, []); // IMPORTANT: [] prevents infinite requests
+    axios.get('https://localhost:5001/api/users')
+      .then(res => setUsers(res.data))
+      .catch(err => console.error("Error fetching users", err));
+  }, []);
 
-  // HANDLE FORM INPUT
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  // CREATE NEW STUDENT
-  const handleSubmit = (e) => {
+  // CREATE
+  const addUser = (e) => {
     e.preventDefault();
 
-    axios.post('https://localhost:5001/api/students', form)
-      .then(res => {
-        setStudents([...students, res.data]);
-        setForm({ name: '', email: '', major: '' });
+    axios.post('https://localhost:5001/api/users', form)
+      .then((res) => {
+        setUsers([...users, res.data]);
+        setForm({ id: '', name: '', email: '' });
       })
-      .catch(err => console.error('Error creating student', err));
+      .catch(err => console.error("Error adding user", err));
   };
 
-  // DELETE STUDENT
-  const handleDelete = (id) => {
-    axios.delete(`https://localhost:5001/api/students/${id}`)
-      .then(() => {
-        setStudents(students.filter(s => s.id !== id));
-      })
-      .catch(err => console.error('Error deleting student', err));
+  // DELETE
+  const deleteUser = (id) => {
+    axios.delete(`https://localhost:5001/api/users/${id}`)
+      .then(() => setUsers(users.filter(u => u.id !== id)))
+      .catch(err => console.error("Error deleting user", err));
   };
 
-  // LOAD STUDENT INTO FORM (ENTER EDIT MODE)
-  const startEdit = (student) => {
-    setEditingId(student.id);
+  // ENTER EDIT MODE
+  const startEdit = (user) => {
+    setEditingId(user.id);
     setForm({
-      name: student.name,
-      email: student.email,
-      major: student.major
+      id: user.id,
+      name: user.name,
+      email: user.email
     });
   };
 
-  // SAVE EDIT (UPDATE)
+  // UPDATE
   const saveEdit = (e) => {
     e.preventDefault();
 
-    axios.put(`https://localhost:5001/api/students/${editingId}`, form)
-      .then(res => {
-        setStudents(students.map(s => (s.id === editingId ? res.data : s)));
+    axios.put(`https://localhost:5001/api/users/${editingId}`, form)
+      .then((res) => {
+        setUsers(users.map(u => (u.id === editingId ? res.data : u)));
         setEditingId(null);
-        setForm({ name: '', email: '', major: '' });
+        setForm({ id: '', name: '', email: '' });
       })
-      .catch(err => console.error('Error updating student', err));
+      .catch(err => console.error("Error updating user", err));
   };
 
   return (
     <div className="App">
-      <h1>Student Manager</h1>
+      <h1>User Manager</h1>
 
-      {/* FORM */}
-      <form onSubmit={editingId ? saveEdit : handleSubmit}>
-        <input
-          name="name"
-          placeholder="Name"
-          value={form.name}
-          onChange={handleChange}
-        />
-        <input
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-        />
-        <input
-          name="major"
-          placeholder="Major"
-          value={form.major}
-          onChange={handleChange}
-        />
-
-        <button type="submit">
-          {editingId ? "Save Changes" : "Add Student"}
-        </button>
-
-        {editingId && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditingId(null);
-              setForm({ id: '', name: '', email: '', major: '' });
-            }}
-          >
-            Cancel Edit
-          </button>
-        )}
-      </form>
+      {/* Form */}
+      <ItemForm
+        form={form}
+        setForm={setForm}
+        editingId={editingId}
+        onSubmit={editingId ? saveEdit : addUser}
+        onCancel={() => {
+          setEditingId(null);
+          setForm({ id: '', name: '', email: '' });
+        }}
+      />
 
       <hr />
 
-      {/* STUDENT LIST */}
-      <h2>Student List</h2>
+      {/* User List */}
+      <h2>User List</h2>
       <ul>
-        {students.map(student => (
-          <li key={student.id}>
-            <strong>{student.name}</strong> — {student.email} — {student.major}
+        {users.map((user) => (
+          <li key={user.id}>
+            <strong>{user.id}</strong> — {user.name} — {user.email}
 
-            <button onClick={() => startEdit(student)}>Edit</button>
-            <button onClick={() => handleDelete(student.id)}>Delete</button>
+            <button 
+              onClick={() => startEdit(user)} 
+              style={{ marginLeft: "10px" }}
+            >
+              Edit
+            </button>
+
+            <button 
+              onClick={() => deleteUser(user.id)} 
+              style={{ marginLeft: "10px" }}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
-
     </div>
   );
 }
