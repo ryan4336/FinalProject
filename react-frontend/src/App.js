@@ -106,7 +106,7 @@ function App() {
             type="button"
             onClick={() => {
               setEditingId(null);
-              setForm({ name: '', email: '', major: '' });
+              setForm({ id: '', name: '', email: '', major: '' });
             }}
           >
             Cancel Edit
