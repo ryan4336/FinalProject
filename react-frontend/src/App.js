@@ -2,46 +2,50 @@ import './App.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-import ItemForm from "./components/itemform";
+import ItemForm from './components/itemform';
+import ItemList from './components/itemlist';
 
 function App() {
 
   const [users, setUsers] = useState([]);
+
   const [form, setForm] = useState({
-    id: '',
-    name: '',
-    email: ''
+    id: "",
+    name: "",
+    email: ""
   });
 
   const [editingId, setEditingId] = useState(null);
 
-  // READ - fetch users
+  // GET ALL USERS
   useEffect(() => {
-    axios.get('https://localhost:5001/api/users')
+    axios.get("http://localhost:5001/api/users")
       .then(res => setUsers(res.data))
       .catch(err => console.error("Error fetching users", err));
   }, []);
 
-  // CREATE
-  const addUser = (e) => {
+  // CREATE USER
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.post('https://localhost:5001/api/users', form)
-      .then((res) => {
+    axios.post("http://localhost:5001/api/users", form)
+      .then(res => {
         setUsers([...users, res.data]);
-        setForm({ id: '', name: '', email: '' });
+        setForm({ id: "", name: "", email: "" });
       })
-      .catch(err => console.error("Error adding user", err));
+      .catch(err => console.error("Error creating user", err));
   };
 
-  // DELETE
-  const deleteUser = (id) => {
-    axios.delete(`https://localhost:5001/api/users/${id}`)
-      .then(() => setUsers(users.filter(u => u.id !== id)))
+  // DELETE USER
+  const handleDelete = (id) => {
+    axios.delete(`http://localhost:5001/api/users/${id}`)
+      .then(() => {
+        setUsers(users.filter(u => u.id !== id));
+      })
       .catch(err => console.error("Error deleting user", err));
   };
 
-  // ENTER EDIT MODE
+  // LOAD A USER INTO FORM FOR EDITING
   const startEdit = (user) => {
     setEditingId(user.id);
     setForm({
@@ -51,15 +55,15 @@ function App() {
     });
   };
 
-  // UPDATE
+  // UPDATE USER
   const saveEdit = (e) => {
     e.preventDefault();
 
-    axios.put(`https://localhost:5001/api/users/${editingId}`, form)
+    axios.put(`http://localhost:5001/api/users/${editingId}`, form)
       .then((res) => {
         setUsers(users.map(u => (u.id === editingId ? res.data : u)));
         setEditingId(null);
-        setForm({ id: '', name: '', email: '' });
+        setForm({ id: "", name: "", email: "" });
       })
       .catch(err => console.error("Error updating user", err));
   };
@@ -68,43 +72,22 @@ function App() {
     <div className="App">
       <h1>User Manager</h1>
 
-      {/* Form */}
       <ItemForm
         form={form}
         setForm={setForm}
         editingId={editingId}
-        onSubmit={editingId ? saveEdit : addUser}
+        onSubmit={editingId ? saveEdit : handleSubmit}
         onCancel={() => {
           setEditingId(null);
-          setForm({ id: '', name: '', email: '' });
+          setForm({ id: "", name: "", email: "" });
         }}
       />
 
-      <hr />
-
-      {/* User List */}
-      <h2>User List</h2>
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>
-            <strong>{user.id}</strong> — {user.name} — {user.email}
-
-            <button 
-              onClick={() => startEdit(user)} 
-              style={{ marginLeft: "10px" }}
-            >
-              Edit
-            </button>
-
-            <button 
-              onClick={() => deleteUser(user.id)} 
-              style={{ marginLeft: "10px" }}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      <ItemList
+        users={users}
+        onEdit={startEdit}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

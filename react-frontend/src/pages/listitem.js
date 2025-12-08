@@ -1,32 +1,34 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
+import React from "react";
 
-export default function ListItems() {
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
-    axios.get("http://localhost:5000/api/items")
-      .then(res => setItems(res.data))
-      .catch(err => console.log(err));
-  }, []);
-
-  const deleteItem = (id) => {
-    axios.delete(`http://localhost:5000/api/items/${id}`)
-      .then(() => setItems(items.filter(i => i._id !== id)))
-      .catch(err => console.log(err));
-  };
-
+export default function ItemList({ users, onEdit, onDelete }) {
   return (
     <div>
-      <h2>All Items</h2>
-      {items.map((item) => (
-        <div key={item._id}>
-          <h3>{item.name}</h3>
-          <Link to={`/edit/${item._id}`}>Edit</Link>
-          <button onClick={() => deleteItem(item._id)}>Delete</button>
-        </div>
-      ))}
+      <h2>User List</h2>
+
+      {users.length === 0 && <p>No users found.</p>}
+
+      <ul>
+        {users.map((u) => (
+          <li key={u.id}>
+            <strong>{u.name}</strong> — {u.email}
+
+            <button
+              onClick={() => onEdit(u)}
+              style={{ marginLeft: "10px" }}
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => onDelete(u.id)}
+              style={{ marginLeft: "10px" }}
+            >
+              Delete
+            </button>
+
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
