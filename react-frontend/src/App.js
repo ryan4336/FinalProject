@@ -1,95 +1,123 @@
-import './App.css';
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import Navbar from "./components/navbar";
+import HomePage from "./pages/HomePage";
+import CreateTask from "./pages/CreateTask";
+import EditTask from "./pages/EditTask";
+import TaskListPage from "./pages/TaskListPage";
+import api from "./api";
 
-import ItemForm from './components/itemform';
-import ItemList from './components/itemlist';
+export default function App() {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-function App() {
+  const navigate = useNavigate();
 
-  const [users, setUsers] = useState([]);
+  // fetch tasks (READ)
+  const loadTasks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get("/tasks");
+      // normalize id (_id vs id)
+      const normalized = res.data.map((t) => ({ 
+        ...t, 
+        id: t.id || t._id 
+      }));
+      setTasks(normalized);
+    } catch (err) {
+      console.error("Error loading tasks:", err);
+      setError("Could not load tasks. Is the backend running?");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const [form, setForm] = useState({
-    id: "",
-    name: "",
-    email: ""
-  });
-
-  const [editingId, setEditingId] = useState(null);
-
-  // GET ALL USERS
   useEffect(() => {
-    axios.get("http://localhost:5001/api/users")
-      .then(res => setUsers(res.data))
-      .catch(err => console.error("Error fetching users", err));
+    loadTasks();
   }, []);
 
-  // CREATE USER
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    axios.post("http://localhost:5001/api/users", form)
-      .then(res => {
-        setUsers([...users, res.data]);
-        setForm({ id: "", name: "", email: "" });
-      })
-      .catch(err => console.error("Error creating user", err));
+  // CREATE
+  const createTask = async (payload) => {
+    try {
+      const res = await api.post("/tasks", payload);
+      const newTask = res.data;
+      newTask.id = newTask.id || newTask._id;
+      setTasks((prev) => [...prev, newTask]);
+      navigate("/"); // go to list/home
+      return { ok: true };
+    } catch (err) {
+      console.error("Create failed:", err);
+      return { ok: false, error: err?.response?.data || err.message };
+    }
   };
 
-  // DELETE USER
-  const handleDelete = (id) => {
-    axios.delete(`http://localhost:5001/api/users/${id}`)
-      .then(() => {
-        setUsers(users.filter(u => u.id !== id));
-      })
-      .catch(err => console.error("Error deleting user", err));
+  // UPDATE
+  const updateTask = async (id, payload) => {
+    try {
+      const res = await api.put(`/tasks/${id}`, payload);
+      const updated = res.data;
+      updated.id = updated.id || updated._id;
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      navigate("/");
+      return { ok: true };
+    } catch (err) {
+      console.error("Update failed:", err);
+      return { ok: false, error: err?.response?.data || err.message };
+    }
   };
 
-  // LOAD A USER INTO FORM FOR EDITING
-  const startEdit = (user) => {
-    setEditingId(user.id);
-    setForm({
-      id: user.id,
-      name: user.name,
-      email: user.email
-    });
+  // DELETE
+  const deleteTask = async (id) => {
+    if (!window.confirm("Delete this task?")) return;
+    try {
+      await api.delete(`/tasks/${id}`);
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Delete failed. Check console.");
+    }
   };
 
-  // UPDATE USER
-  const saveEdit = (e) => {
-    e.preventDefault();
-
-    axios.put(`http://localhost:5001/api/users/${editingId}`, form)
-      .then((res) => {
-        setUsers(users.map(u => (u.id === editingId ? res.data : u)));
-        setEditingId(null);
-        setForm({ id: "", name: "", email: "" });
-      })
-      .catch(err => console.error("Error updating user", err));
+  // TOGGLE COMPLETE
+  const toggleComplete = async (task) => {
+    try {
+      await updateTask(task.id, { ...task, isCompleted: !task.isCompleted });
+    } catch (err) {
+      console.error("Toggle complete failed", err);
+    }
   };
 
   return (
-    <div className="App">
-      <h1>User Manager</h1>
-
-      <ItemForm
-        form={form}
-        setForm={setForm}
-        editingId={editingId}
-        onSubmit={editingId ? saveEdit : handleSubmit}
-        onCancel={() => {
-          setEditingId(null);
-          setForm({ id: "", name: "", email: "" });
-        }}
-      />
-
-      <ItemList
-        users={users}
-        onEdit={startEdit}
-        onDelete={handleDelete}
-      />
-    </div>
+    <>
+      <Navbar />
+      <main className="container">
+        {error && <div className="error">{error}</div>}
+        <Routes>
+          <Route path="/" element={
+            <HomePage
+              tasks={tasks}
+              loading={loading}
+              onDelete={deleteTask}
+              onToggleComplete={toggleComplete}
+              onRefresh={loadTasks}
+            />
+          } />
+          <Route path="/new" element={<CreateTask onCreate={createTask} />} />
+          <Route path="/edit/:id" element={<EditTask tasks={tasks} onUpdate={updateTask} />} />
+          <Route path="/tasks" element={
+            <TaskListPage 
+              tasks={tasks}
+              loading={loading}
+              onDelete={deleteTask}
+              onToggleComplete={toggleComplete}
+              onRefresh={loadTasks}
+            />
+          } />
+          <Route path="*" element={<div style={{padding:20}}>Page not found</div>} />
+        </Routes>
+      </main>
+    </>
   );
 }
-
-export default App;
