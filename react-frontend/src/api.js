@@ -5,21 +5,16 @@ const api = axios.create({
   baseURL: "http://localhost:5001/api",
 });
 
-// ------------------ USERS ------------------
-
+// -------- USERS ----------
 export const getUserByEmail = (email) =>
-  api.get(`/users/search`, { params: { email } });
+  api.get("/users", { params: { email } }); // calls GET /api/users?email=test
 
 export const createUser = (payload) =>
   api.post("/users", payload);
 
-// ------------------ TASKS ------------------
-
+// -------- TASKS ----------
 export const getTasksForUser = (userId) =>
-  api.get(`/tasks/user/${userId}`);
-
-export const getTask = (id) =>
-  api.get(`/tasks/${id}`);
+  api.get(`/tasks/${userId}`);
 
 export const createTask = (payload) =>
   api.post("/tasks", payload);
