@@ -5,26 +5,28 @@ const api = axios.create({
   baseURL: "http://localhost:5001/api",
 });
 
-// ---- USERS ----
+// ---------------- USER ----------------
 export const getUserByEmail = (email) =>
   api.get("/users", { params: { email } });
 
 export const createUser = (payload) =>
   api.post("/users", payload);
 
-// ---- TASKS ----
+// ---------------- TASKS ----------------
+
+// Get tasks for a specific user
 export const getTasksForUser = (userId) =>
-  api.get(`/tasks/${userId}`); // FIX: must hit /tasks/:userId
+  api.get(`/tasks/${userId}`);
 
-export const getTask = (id) =>
-  api.get(`/tasks/id/${id}`); // New route matches server.js
-
+// Create a new task
 export const createTask = (payload) =>
   api.post("/tasks", payload);
 
+// Update a task
 export const updateTask = (id, payload) =>
   api.put(`/tasks/${id}`, payload);
 
+// Delete a task
 export const deleteTask = (id) =>
   api.delete(`/tasks/${id}`);
 

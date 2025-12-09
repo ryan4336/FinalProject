@@ -36,15 +36,18 @@ const Task = mongoose.model("Task", taskSchema);
 // ======================================
 
 // GET users OR user by email
+// Get user by email OR get all users
 app.get("/api/users", async (req, res) => {
   try {
     const { email } = req.query;
 
+    // If requesting by email
     if (email) {
-      const found = await User.findOne({ email });
-      return res.json(found ? [found] : []); // match frontend expectations
+      const user = await User.findOne({ email });
+      return res.json(user ? [user] : []);
     }
 
+    // Otherwise return all users
     const users = await User.find();
     res.json(users);
   } catch (err) {

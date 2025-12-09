@@ -1,18 +1,23 @@
 // src/pages/TasksPage.js
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useTasks from "../hooks/useTasks";
 import TaskList from "../components/TaskList";
 
 export default function TasksPage({ user }) {
   const navigate = useNavigate();
-  const { tasks, loading, error, reload, removeTask } = useTasks(user);
 
-  if (!user) {
-    // if not signed in, redirect to sign in
-    navigate("/signin");
-    return null;
-  }
+  // Redirect if user not signed in
+  useEffect(() => {
+    if (!user || !user._id) {
+      navigate("/signin");
+    }
+  }, [user, navigate]);
+
+  // If user isn't loaded yet, do nothing
+  if (!user || !user._id) return <div>Loading...</div>;
+
+  const { tasks, loading, error, reload, removeTask } = useTasks(user._id);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this task?")) return;
@@ -36,7 +41,11 @@ export default function TasksPage({ user }) {
       {loading && <div className="card">Loading...</div>}
       {error && <div className="card">Error loading tasks</div>}
 
-      <TaskList tasks={tasks} onDelete={handleDelete} userId={user.id || user._id} />
+      <TaskList 
+        tasks={tasks} 
+        onDelete={handleDelete} 
+        userId={user._id} 
+      />
     </div>
   );
 }
