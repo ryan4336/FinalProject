@@ -25,8 +25,10 @@ const taskSchema = new mongoose.Schema({
   title: String,
   description: String,
   completed: { type: Boolean, default: false },
-  priority: { type: Boolean, default: false }
+  priority: { type: String, enum: ["Low","Normal","High","Critical"], default: "Normal" },
+  dueDate: Date
 });
+
 
 const User = mongoose.model("User", userSchema);
 const Task = mongoose.model("Task", taskSchema);
