@@ -115,7 +115,7 @@ app.get("/api/tasks", async (req, res) => {
 // Add a new task
 app.post("/api/tasks", async (req, res) => {
   try {
-    const { user, title, description, completed, priority } = req.body;
+    const { user, title, description, completed, priority, dueDate } = req.body;
 
     if (!user) {
       return res.status(400).json({ message: "Missing user field" });
@@ -127,6 +127,7 @@ app.post("/api/tasks", async (req, res) => {
       description,
       completed,
       priority,
+      dueDate
     });
 
     const saved = await task.save();
