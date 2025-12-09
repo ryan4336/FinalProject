@@ -88,67 +88,82 @@ app.delete("/api/users/:id", async (req, res) => {
 // =============== TASKS =================
 // ======================================
 
-// GET tasks for a specific user
-app.get("/api/tasks/:userId", async (req, res) => {
+// ---- Task Routes ----
+
+// Get all tasks for a specific user (using query param)
+app.get("/api/tasks", async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.params.userId });
+    const userId = req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    const tasks = await Task.find({ user: userId });
     res.json(tasks);
   } catch (err) {
-    console.error("Task fetch error:", err);
+    console.error("Error fetching tasks:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// GET single task (needed for EditTask.js)
-app.get("/api/tasks/id/:taskId", async (req, res) => {
-  try {
-    const task = await Task.findById(req.params.taskId);
-    if (!task)
-      return res.status(404).json({ message: "Task not found" });
-
-    res.json(task);
-  } catch (err) {
-    console.error("Get task error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// CREATE task
+// Add a new task
 app.post("/api/tasks", async (req, res) => {
   try {
-    const task = new Task(req.body);
+    const { user, title, description, completed, priority } = req.body;
+
+    if (!user) {
+      return res.status(400).json({ message: "Missing user field" });
+    }
+
+    const task = new Task({
+      user,
+      title,
+      description,
+      completed,
+      priority,
+    });
+
     const saved = await task.save();
     res.status(201).json(saved);
   } catch (err) {
-    console.error("Create task error:", err);
+    console.error("Error creating task:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// UPDATE task
-app.put("/api/tasks/:id", async (req, res) => {
+// Update task
+app.put("/api/tasks/:taskId", async (req, res) => {
   try {
-    const updated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated)
-      return res.status(404).json({ message: "Task not found" });
+    const updatedTask = await Task.findByIdAndUpdate(
+      req.params.taskId,
+      req.body,
+      { new: true }
+    );
 
-    res.json(updated);
+    if (!updatedTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json(updatedTask);
   } catch (err) {
-    console.error("Update error:", err);
+    console.error("Error updating task:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// DELETE task
-app.delete("/api/tasks/:id", async (req, res) => {
+// Delete task
+app.delete("/api/tasks/:taskId", async (req, res) => {
   try {
-    const deleted = await Task.findByIdAndDelete(req.params.id);
-    if (!deleted)
+    const deletedTask = await Task.findByIdAndDelete(req.params.taskId);
+
+    if (!deletedTask) {
       return res.status(404).json({ message: "Task not found" });
+    }
 
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
-    console.error("Delete task error:", err);
+    console.error("Error deleting task:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
