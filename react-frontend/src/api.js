@@ -2,19 +2,21 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5001/api", // <-- change to http if required
-  // withCredentials: true, // optional if your backend uses cookies
+  baseURL: "http://localhost:5001/api",
 });
 
-// helper APIs (optional wrappers)
+// ---- USERS ----
 export const getUserByEmail = (email) =>
-  api.get("/users", { params: { email } }); // expects [] or [user]
+  api.get("/users", { params: { email } });
 
 export const createUser = (payload) =>
   api.post("/users", payload);
 
+// ---- TASKS ----
+
+// MUST use /tasks/:userId because your backend expects req.params.userId
 export const getTasksForUser = (userId) =>
-  api.get("/tasks", { params: { userId } });
+  api.get(`/tasks/${userId}`);
 
 export const getTask = (id) =>
   api.get(`/tasks/${id}`);
