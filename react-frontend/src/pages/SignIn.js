@@ -14,8 +14,8 @@ export default function SignIn({ onSignedIn }) {
     try {
       const res = await getUserByEmail(email);
       const found = Array.isArray(res.data) ? res.data[0] : res.data;
-      if (found) { onSignedIn(found); nav("/tasks"); }
-      else { const createRes = await createUser({ email }); onSignedIn(createRes.data); nav("/tasks"); }
+      if (found) { onSignedIn(found); nav("/"); }
+      else { const createRes = await createUser({ email }); onSignedIn(createRes.data); nav("/"); }
     } catch (error) { setErr(error.message || "Sign in failed"); }
     finally { setLoading(false); }
   };
