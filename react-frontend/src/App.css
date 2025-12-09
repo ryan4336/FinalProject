@@ -73,3 +73,4 @@ nav.nav .brand { color: var(--accent); font-size:1.1rem; font-weight:700; margin
 .task-overdue { border-left:4px solid #d9534f; }
 .small { font-size:0.85rem; color:var(--muted) }
 .task-priority { font-weight:700; margin-left:8px; }
+.task-completed {background-color: lightgreen; opacity: 0.9;}

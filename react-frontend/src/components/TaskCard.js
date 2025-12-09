@@ -7,7 +7,7 @@ export default function TaskCard({ task, onDelete, canEdit, onToggle }) {
   const dueSoon = dueDate && new Date() < dueDate && new Date() > new Date(dueDate) - 24*60*60*1000;
 
   return (
-    <div className={`card ${isOverdue ? "task-overdue" : dueSoon ? "task-due-soon" : ""}`}>
+    <div className={`card ${isOverdue ? "task-overdue" : dueSoon ? "task-due-soon" : ""} ${task.completed ? "task-completed" : " "}`}>
       <h4>
         {task.title}<br/>
         {task.priority && <span className="task-priority">Priotity: {task.priority}</span>}
