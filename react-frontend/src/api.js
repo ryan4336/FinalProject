@@ -5,16 +5,19 @@ const api = axios.create({
   baseURL: "http://localhost:5001/api",
 });
 
-// -------- USERS ----------
+// ---- USERS ----
 export const getUserByEmail = (email) =>
-  api.get("/users", { params: { email } }); // calls GET /api/users?email=test
+  api.get("/users", { params: { email } });
 
 export const createUser = (payload) =>
   api.post("/users", payload);
 
-// -------- TASKS ----------
+// ---- TASKS ----
 export const getTasksForUser = (userId) =>
-  api.get(`/tasks/${userId}`);
+  api.get(`/tasks/${userId}`); // FIX: must hit /tasks/:userId
+
+export const getTask = (id) =>
+  api.get(`/tasks/id/${id}`); // New route matches server.js
 
 export const createTask = (payload) =>
   api.post("/tasks", payload);
