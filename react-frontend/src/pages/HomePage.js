@@ -1,22 +1,24 @@
+// src/pages/HomePage.js
 import React from "react";
-import TaskList from "../components/TaskList";
+import { Link } from "react-router-dom";
 
-export default function HomePage({ tasks, loading, onDelete, onToggleComplete, onRefresh }) {
+export default function HomePage({ user }) {
   return (
     <div>
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-        <h1>All Tasks</h1>
-        <div>
-          <button className="btn small" onClick={onRefresh}>Refresh</button>
-        </div>
-      </div>
+      <div className="card">
+        <h1>Welcome to TaskFlow</h1>
+        <p>Manage your tasks, get reminders, and focus on what matters.</p>
 
-      <TaskList 
-        tasks={tasks} 
-        loading={loading} 
-        onDelete={onDelete} 
-        onToggleComplete={onToggleComplete} 
-      />
+        {user ? (
+          <>
+            <p className="small">Signed in as <strong>{user.email}</strong></p>
+            <Link to="/tasks" className="btn">View My Tasks</Link>
+            <Link to="/new" className="btn" style={{ marginLeft: 8 }}>Create Task</Link>
+          </>
+        ) : (
+          <Link to="/signin" className="btn">Sign in with Email</Link>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,77 +1,64 @@
+// src/pages/EditTask.js
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { getTask } from "../api";
+import useTasks from "../hooks/useTasks";
+import TaskForm from "../components/TaskForm";
 
-export default function EditTask({ tasks = [], onUpdate }) {
+export default function EditTask({ user }) {
   const { id } = useParams();
-  const [form, setForm] = useState({
-    title: "", description: "", dueDate: "", priority: "Medium", isCompleted: false
-  });
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  const nav = useNavigate();
+  const { editTask } = useTasks(user);
+  const [form, setForm] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const t = tasks.find(x => x.id === id);
-    if (t) {
-      setForm({
-        title: t.title || "",
-        description: t.description || "",
-        dueDate: t.dueDate ? t.dueDate.split("T")[0] : "",
-        priority: t.priority || "Medium",
-        isCompleted: !!t.isCompleted
-      });
-    } else {
-      // if tasks not loaded yet, leave blank — user can refresh
-    }
-  }, [id, tasks]);
-
-  const handleChange = (e) => setForm({...form, [e.target.name]: e.target.type === "checkbox" ? e.target.checked : e.target.value});
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    if (!form.title || !form.dueDate) {
-      setError("Title and due date required.");
+    if (!user) {
+      nav("/signin");
       return;
     }
-    setBusy(true);
-    const res = await onUpdate(id, form);
-    setBusy(false);
-    if (!res.ok) {
-      setError(res.error || "Update failed");
+    // load single task
+    (async () => {
+      try {
+        const res = await getTask(id);
+        const t = res.data;
+        // ensure task belongs to user
+        if (!t) throw new Error("Not found");
+        const userId = user.id || user._id;
+        if ((t.userId && (t.userId !== userId)) && (t.userId !== userId.toString())) {
+          alert("You cannot edit this task.");
+          nav("/tasks");
+          return;
+        }
+        setForm({
+          title: t.title || "",
+          description: t.description || "",
+          dueDate: t.dueDate ? t.dueDate.split(".")[0] : "",
+          priority: t.priority || "Normal",
+          isCompleted: t.isCompleted || false,
+        });
+      } catch (err) {
+        alert("Failed to load task");
+        nav("/tasks");
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // eslint-disable-next-line
+  }, [id, user]);
+
+  if (loading) return <div className="card">Loading...</div>;
+  if (!form) return null;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    try {
+      await editTask(id, form);
+      nav("/tasks");
+    } catch (err) {
+      alert("Failed to update task");
     }
   };
 
-  return (
-    <div className="card">
-      <h2>Edit Task</h2>
-      {error && <div className="error">{error}</div>}
-
-      <div style={{display:"grid", gap:8}}>
-        <label className="kv">Title</label>
-        <input name="title" value={form.title} onChange={handleChange} />
-
-        <label className="kv">Description</label>
-        <textarea name="description" value={form.description} onChange={handleChange} />
-
-        <label className="kv">Due Date</label>
-        <input type="date" name="dueDate" value={form.dueDate} onChange={handleChange} />
-
-        <label className="kv">Priority</label>
-        <select name="priority" value={form.priority} onChange={handleChange}>
-          <option>High</option>
-          <option>Medium</option>
-          <option>Low</option>
-        </select>
-
-        <label style={{display:"flex", alignItems:"center", gap:8}}>
-          <input type="checkbox" name="isCompleted" checked={form.isCompleted} onChange={handleChange} />
-          Mark completed
-        </label>
-
-        <div style={{display:"flex", gap:8}}>
-          <button className="btn" onClick={handleSubmit} disabled={busy}>{busy ? "Saving..." : "Save Changes"}</button>
-        </div>
-      </div>
-    </div>
-  );
+  return <TaskForm form={form} setForm={setForm} onSubmit={submit} submitLabel="Save Changes" />;
 }

@@ -1,33 +1,37 @@
+// src/components/TaskForm.js
 import React from "react";
 
-export default function ItemList({ students, onEdit, onDelete }) {
+export default function TaskForm({ form, setForm, onSubmit, submitLabel="Save" }) {
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+  };
+
   return (
-    <div>
-      <h2>Student List</h2>
+    <form className="card" onSubmit={onSubmit}>
+      <h3>{submitLabel}</h3>
 
-      {students.length === 0 && <p>No students found.</p>}
+      <div className="form-row">
+        <input name="title" value={form.title || ""} onChange={handleChange} placeholder="Title" required />
+        <select name="priority" value={form.priority || "Normal"} onChange={handleChange}>
+          <option>Low</option>
+          <option>Normal</option>
+          <option>High</option>
+          <option>Critical</option>
+        </select>
+      </div>
 
-      <ul>
-        {students.map((student) => (
-          <li key={student.id}>
-            <strong>{student.name}</strong> — {student.email} — {student.major}
+      <div className="form-row">
+        <input name="dueDate" type="datetime-local" value={form.dueDate || ""} onChange={handleChange} />
+      </div>
 
-            <button 
-              onClick={() => onEdit(student)} 
-              style={{ marginLeft: "10px" }}
-            >
-              Edit
-            </button>
+      <div className="form-row">
+        <textarea name="description" value={form.description || ""} onChange={handleChange} placeholder="Description" rows={4} />
+      </div>
 
-            <button 
-              onClick={() => onDelete(student.id)} 
-              style={{ marginLeft: "10px" }}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+      <div style={{ display:"flex", gap:8 }}>
+        <button className="btn" type="submit">{submitLabel}</button>
+      </div>
+    </form>
   );
 }

@@ -1,61 +1,71 @@
-import { useState, useEffect } from "react";
-import axios from "../api/axiosConfig";
+// src/hooks/useTasks.js
+import { useEffect, useState } from "react";
+import {
+  getTasksForUser,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../api";
 
-export default function useTasks() {
+/**
+ * useTasks(user)
+ * - user: { id, email } or null
+ * Returns: { tasks, loading, error, reload, addTask, editTask, removeTask }
+ */
+export default function useTasks(user) {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Load tasks on mount
+  const load = async () => {
+    if (!user) {
+      setTasks([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getTasksForUser(user.id);
+      // Expect array
+      setTasks(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    load();
+    // eslint-disable-next-line
+  }, [user]);
 
-  const fetchTasks = () => {
-    axios
-      .get("/tasks")
-      .then((res) => {
-        setTasks(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching tasks", err);
-        setLoading(false);
-      });
+  const addTask = async (payload) => {
+    if (!user) throw new Error("Not signed in");
+    const body = { ...payload, userId: user.id };
+    const res = await createTask(body);
+    setTasks((s) => [...s, res.data]);
+    return res.data;
   };
 
-  const addTask = (newTask) => {
-    return axios
-      .post("/tasks", newTask)
-      .then((res) => {
-        setTasks([...tasks, res.data]);
-      })
-      .catch((err) => console.error("Error adding task", err));
+  const editTask = async (id, payload) => {
+    const res = await updateTask(id, payload);
+    setTasks((s) => s.map((t) => (t.id === id || t._id === id ? res.data : t)));
+    return res.data;
   };
 
-  const deleteTask = (id) => {
-    return axios
-      .delete(`/tasks/${id}`)
-      .then(() => {
-        setTasks(tasks.filter((t) => t._id !== id));
-      })
-      .catch((err) => console.error("Error deleting task", err));
-  };
-
-  const updateTask = (id, updatedTask) => {
-    return axios
-      .put(`/tasks/${id}`, updatedTask)
-      .then((res) => {
-        setTasks(tasks.map((t) => (t._id === id ? res.data : t)));
-      })
-      .catch((err) => console.error("Error updating task", err));
+  const removeTask = async (id) => {
+    await deleteTask(id);
+    setTasks((s) => s.filter((t) => t.id !== id && t._id !== id));
   };
 
   return {
     tasks,
     loading,
+    error,
+    reload: load,
     addTask,
-    deleteTask,
-    updateTask,
-    fetchTasks,
+    editTask,
+    removeTask,
   };
 }
