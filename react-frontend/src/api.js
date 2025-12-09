@@ -5,16 +5,14 @@ const api = axios.create({
   baseURL: "http://localhost:5001/api",
 });
 
-// ---- USERS ----
+// USER API
 export const getUserByEmail = (email) =>
-  api.get("/users", { params: { email } });
+  api.get(`/users/email/${email}`);
 
 export const createUser = (payload) =>
   api.post("/users", payload);
 
-// ---- TASKS ----
-
-// MUST use /tasks/:userId because your backend expects req.params.userId
+// TASK API
 export const getTasksForUser = (userId) =>
   api.get(`/tasks/${userId}`);
 
