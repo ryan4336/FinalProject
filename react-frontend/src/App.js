@@ -8,7 +8,7 @@ import TasksPage from "./pages/TasksPage";
 import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
 
-import Navbar from "./components/navbar";
+import Navbar from "./components/Navbar";
 
 function App() {
   const [user, setUser] = useState(() => {
