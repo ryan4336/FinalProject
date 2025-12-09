@@ -6,19 +6,17 @@ const cors = require("cors");
 const app = express();
 
 // Middleware
-app.use(cors()); // allow React frontend to call this API
-app.use(express.json()); // parse JSON bodies
+app.use(cors());
+app.use(express.json());
 
-// Connect to MongoDB
-const mongoUri = process.env.MONGO_URI; // from .env
-
+// MongoDB Connect
 mongoose
-  .connect(mongoUri)
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // -------------------
-// Define Schemas/Models
+// Models
 // -------------------
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -37,14 +35,19 @@ const User = mongoose.model("User", userSchema);
 const Task = mongoose.model("Task", taskSchema);
 
 // -------------------
-// Routes
+// USER ROUTES
 // -------------------
 
-// ---- User Routes ----
-
-// Get all users
+// GET users OR filter by email
 app.get("/api/users", async (req, res) => {
   try {
+    const { email } = req.query;
+
+    if (email) {
+      const user = await User.findOne({ email });
+      return res.json(user ? [user] : []);
+    }
+
     const users = await User.find();
     res.json(users);
   } catch (err) {
@@ -53,12 +56,14 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-// Add a new user
+// Create user
 app.post("/api/users", async (req, res) => {
   try {
     const { name, email } = req.body;
+
     const user = new User({ name, email });
     const saved = await user.save();
+
     res.status(201).json(saved);
   } catch (err) {
     console.error("Error creating user:", err);
@@ -66,29 +71,20 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-// DELETE user by ID
-app.delete("/users/:id", async (req, res) => {
+// -------------------
+// TASK ROUTES
+// -------------------
+
+// GET tasks (supports frontend call: GET /tasks?userId=###)
+app.get("/api/tasks", async (req, res) => {
   try {
-    const userId = req.params.id;
+    const { userId } = req.query;
 
-    const deletedUser = await User.findByIdAndDelete(userId);
-
-    if (!deletedUser) {
-      return res.status(404).json({ message: "User not found" });
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
     }
 
-    res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-// ---- Task Routes ----
-
-// Get all tasks for a specific user
-app.get("/api/tasks/:userId", async (req, res) => {
-  try {
-    const tasks = await Task.find({ user: req.params.userId });
+    const tasks = await Task.find({ user: userId });
     res.json(tasks);
   } catch (err) {
     console.error("Error fetching tasks:", err);
@@ -96,11 +92,21 @@ app.get("/api/tasks/:userId", async (req, res) => {
   }
 });
 
-// Add a new task
+// Get single task
+app.get("/api/tasks/:taskId", async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+    res.json(task);
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Add task
 app.post("/api/tasks", async (req, res) => {
   try {
-    const { user, title, description, completed, priority } = req.body;
-    const task = new Task({ user, title, description, completed, priority });
+    const task = new Task(req.body);
     const saved = await task.save();
     res.status(201).json(saved);
   } catch (err) {
@@ -109,18 +115,17 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// Update a task
+// Update task
 app.put("/api/tasks/:taskId", async (req, res) => {
   try {
     const updatedTask = await Task.findByIdAndUpdate(
       req.params.taskId,
-      req.body,          // fields to update
-      { new: true }      // return updated document
+      req.body,
+      { new: true }
     );
 
-    if (!updatedTask) {
+    if (!updatedTask)
       return res.status(404).json({ message: "Task not found" });
-    }
 
     res.json(updatedTask);
   } catch (err) {
@@ -129,14 +134,13 @@ app.put("/api/tasks/:taskId", async (req, res) => {
   }
 });
 
-// Delete a task
+// Delete task
 app.delete("/api/tasks/:taskId", async (req, res) => {
   try {
     const deletedTask = await Task.findByIdAndDelete(req.params.taskId);
 
-    if (!deletedTask) {
+    if (!deletedTask)
       return res.status(404).json({ message: "Task not found" });
-    }
 
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
