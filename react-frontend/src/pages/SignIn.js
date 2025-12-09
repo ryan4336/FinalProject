@@ -1,4 +1,3 @@
-// src/pages/SignIn.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserByEmail, createUser } from "../api";
@@ -11,29 +10,14 @@ export default function SignIn({ onSignedIn }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setErr(null);
-
+    setLoading(true); setErr(null);
     try {
-      // Try find user by email
       const res = await getUserByEmail(email);
       const found = Array.isArray(res.data) ? res.data[0] : res.data;
-
-      if (found) {
-        // sign in
-        onSignedIn(found);
-        nav("/tasks");
-      } else {
-        // create new user if not found
-        const createRes = await createUser({ email });
-        onSignedIn(createRes.data);
-        nav("/tasks");
-      }
-    } catch (error) {
-      setErr(error.message || "Sign in failed");
-    } finally {
-      setLoading(false);
-    }
+      if (found) { onSignedIn(found); nav("/tasks"); }
+      else { const createRes = await createUser({ email }); onSignedIn(createRes.data); nav("/tasks"); }
+    } catch (error) { setErr(error.message || "Sign in failed"); }
+    finally { setLoading(false); }
   };
 
   return (

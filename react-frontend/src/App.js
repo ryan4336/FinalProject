@@ -1,22 +1,17 @@
-// src/App.js
 import React, { useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
 import HomePage from "./pages/HomePage";
 import SignIn from "./pages/SignIn";
-import TasksPage from "./pages/TasksPage";
+import TasksPage from "./pages/TaskListPage";
 import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
-
 import Navbar from "./components/Navbar";
 
 function App() {
   const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("tf_user")) || null;
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem("tf_user")) || null; }
+    catch { return null; }
   });
 
   const navigate = useNavigate();
@@ -26,10 +21,7 @@ function App() {
     else localStorage.removeItem("tf_user");
   }, [user]);
 
-  const signOut = () => {
-    setUser(null);
-    navigate("/");
-  };
+  const signOut = () => { setUser(null); navigate("/"); };
 
   return (
     <div className="app-root">
@@ -37,11 +29,7 @@ function App() {
       <main className="container">
         <Routes>
           <Route path="/" element={<HomePage user={user} />} />
-          <Route
-            path="/signin"
-            element={<SignIn onSignedIn={(u) => setUser(u)} />}
-          />
-          {/* protect tasks routes — if no user, redirect to signin inside pages */}
+          <Route path="/signin" element={<SignIn onSignedIn={setUser} />} />
           <Route path="/tasks" element={<TasksPage user={user} />} />
           <Route path="/new" element={<CreateTask user={user} />} />
           <Route path="/edit/:id" element={<EditTask user={user} />} />
