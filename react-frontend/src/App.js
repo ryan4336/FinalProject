@@ -6,7 +6,7 @@ import SignIn from "./pages/SignIn";
 import TasksPage from "./pages/TaskListPage";
 import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar";
 
 function App() {
   const [user, setUser] = useState(() => {
