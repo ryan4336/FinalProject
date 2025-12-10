@@ -12,7 +12,18 @@ export default function EditTask({ user }) {
   useEffect(() => {
     if (!user) { nav("/signin"); return; }
     const t = tasks.find(t => t._id === id);
-    if (t) setForm({ title: t.title, description: t.description, dueDate: t.dueDate ? t.dueDate.slice(0,16) : "", priority: t.priority || "Normal", completed: t.completed || false });
+    if (t) {
+      const localDueDate = t.dueDate
+        ? new Date(t.dueDate).toLocaleString("sv-SE").replace(" ", "T")
+        : "";
+      setForm({
+        title: t.title,
+        description: t.description,
+        dueDate: localDueDate,
+        priority: t.priority || "Normal",
+        completed: t.completed || false
+      });
+    }
   }, [tasks, id, user, nav]);
 
   if (!form) return <div>Loading...</div>;
