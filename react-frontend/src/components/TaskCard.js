@@ -10,7 +10,7 @@ export default function TaskCard({ task, onDelete, canEdit, onToggle }) {
     <div className={`card ${isOverdue ? "task-overdue" : dueSoon ? "task-due-soon" : ""} ${task.completed ? "task-completed" : " "}`}>
       <h4 className = {task.completed ? "task-title-completed" : ""}>
         {task.title}<br/>
-        {task.priority && <span className="task-priority">Priotity: {task.priority}</span>}
+        {task.priority && <span className="task-priority">Priority: {task.priority}</span>}
       </h4>
       <p>{task.description}</p>
       {dueDate && <p className="small">Due: {dueDate.toLocaleString()}</p>}
